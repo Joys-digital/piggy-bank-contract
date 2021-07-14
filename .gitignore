@@ -1,0 +1,34 @@
+# Logs
+logs
+*.log
+
+# Directories used by tools like mocha & istanbul
+coverage.*
+coverage
+shippable
+test-results.xml
+
+# Dependency directory
+node_modules
+
+# Generated files
+config/development/contracts.json
+config/development/*.sol.js
+config/test/contracts.json
+dist
+
+# Privated key
+.privateKey
+
+# IDE
+.idea/
+idea/
+.vscode/
+
+# Other
+.gas-report.txt
+build/
+bin/
+.DS_Store
+coverage.json
+runCoverageFor.sh
