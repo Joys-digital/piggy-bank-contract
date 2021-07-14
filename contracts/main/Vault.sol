@@ -6,7 +6,7 @@ pragma solidity 0.6.12;
 import "../utils/PiggyBankOwnable.sol";
 
 /**
- * @dev Vault for staking contract
+ * @dev Vault for Piggy Bank contract
  */
 contract Vault is PiggyBankOwnable {
     event VaultReplenishment(address indexed from, uint256 amount, uint256 timestamp);
