@@ -4,13 +4,23 @@
 pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "../interfaces/IVault.sol";
+import "../interfaces/IPiggyBank.sol";
 import "../utils/PiggyBankOwnable.sol";
 
 /**
  * @dev 'piggy bank' contract for accumulation of gift currency
  */
-contract PiggyBank is PiggyBankOwnable {
+contract PiggyBank is IPiggyBank, PiggyBankOwnable {
     using SafeMath for uint256;
+
+    event Receive(address indexed from, uint256 value, uint256 timestamp);
+    event AccruePrimeRewawd(address indexed from, uint256 value, uint256 timestamp);
+    event Transfer(address indexed target, uint256 value, uint256 timestamp);
+    event HookPrimeReward(address indexed from, address indexed target, uint256 value, uint256 timestamp);
+    event SetVerificationStatus(address indexed owner, address indexed target, bool status, uint256 timestamp);
+    event Withdraw(address indexed from, uint256 value, uint256 timestamp);
+    event ChangeBasePlatform(address indexed newBasePlatform, address indexed oldBasePlatform, uint256 timestamp);
 
     struct User {
         bool isVerified;
@@ -24,37 +34,56 @@ contract PiggyBank is PiggyBankOwnable {
     mapping(address => User) internal _user;
 
     address internal _basePlatform;
+    address internal _vault;
 
-    constructor(address newBasePlatform) public {
+    constructor(address newBasePlatform, address newVault) public {
         _basePlatform = newBasePlatform;
+        _vault = newVault;
     }
 
     receive() external payable {
+        uint256 freePartnerCount = 10;  // must be call to the base platform
+        _totalAccrual = _totalAccrual.add(msg.value.div(freePartnerCount));
+        _totalBalance = _totalBalance.add(msg.value);
 
+        emit Receive(msg.sender, msg.value, block.timestamp);
     }
 
-    function changeBasePlatform(address newBasePlatform) external onlyOwner returns(bool success) {
-        _basePlatform = newBasePlatform;
+    function accruePrimeRewawd() external payable override returns(bool success) {
+        require(msg.sender == _vault);
+        require(msg.value > 0);
+
+        emit AccruePrimeRewawd(msg.sender, msg.value, block.timestamp);
+
         return true;
     }
 
-    function makePrimeReward(address target) external returns(bool success) {
-        require(msg.sender == _basePlatform);
+    function hookPrimeReward(address target) external returns(bool success) {
         require(msg.sender == _basePlatform);
 
         User memory user = _user[target];
         if (user.isPrimeRewarded == false) {
-            user.balance = user.balance.add(100 ether);
-            // call to vault
-            _totalBalance = _totalBalance.add(100 ether);
+            // 100 ether must be received from a price oracle
+            uint256 primeReward = 100 ether;
+            IVault(_vault).vaultWithdraw(primeReward);
+            user.balance = user.balance.add(primeReward);
+            _totalBalance = _totalBalance.add(primeReward);
             user.isPrimeRewarded = true;
             _user[target] = user;
+
+            emit HookPrimeReward(msg.sender, target, primeReward, block.timestamp);
         }
+
         return true;
     } 
 
     function setVerificationStatus(address target, bool isVerified) external onlyOwner returns(bool success) {
+        _recalculateUser(target);
+
         _user[target].isVerified = isVerified;
+
+        emit SetVerificationStatus(msg.sender, target, isVerified, block.timestamp);
+
         return true;
     }
 
@@ -64,8 +93,30 @@ contract PiggyBank is PiggyBankOwnable {
         _user[target].balance = _user[target].balance.sub(amount);
 
         _transfer(target, amount);
+
+        emit Withdraw(target, amount, block.timestamp);
         
         return true;
+    }
+
+    function changeBasePlatform(address newBasePlatform) external onlyOwner returns(bool success) {
+        emit ChangeBasePlatform(newBasePlatform, _basePlatform, block.timestamp);
+
+        _basePlatform = newBasePlatform;
+
+        return true;
+    }
+
+    function balanceOf(address target) external view returns(uint256) {
+        return(_user[target].balance.add(_expectedReward(target)));
+    }
+
+    function clearBalanceOf(address target) external view returns(uint256) {
+        return(_user[target].balance);
+    }
+
+    function expectedRewardOf(address target) external view returns(uint256) {
+        return(_expectedReward(target));
     }
 
     function _expectedReward(address target) internal view returns(uint256) {
@@ -78,7 +129,6 @@ contract PiggyBank is PiggyBankOwnable {
     }
 
     function _recalculateUser(address target) internal {
-
         uint256 expectedRwd = _expectedReward(target);
         if (expectedRwd > 0) {
             _user[target].balance = _user[target].balance.add(expectedRwd);
@@ -89,15 +139,7 @@ contract PiggyBank is PiggyBankOwnable {
     function _transfer(address payable target, uint256 amount) internal {
         target.transfer(amount);
 
-        // emit Transfer(target, amount, block.timestamp);   
+        emit Transfer(target, amount, block.timestamp);   
     }
-    
-
-
-
-
-
-
-
 
 }

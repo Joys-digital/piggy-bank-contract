@@ -16,7 +16,7 @@ module.exports = async function(deployer, network, accounts) {
   await deployer.deploy(Vault);
   const vaultAddress = (await Vault.deployed()).address;
 
-  await deployer.deploy(PiggyBank, vaultAddress);
+  await deployer.deploy(PiggyBank, newBasePlatform, vaultAddress);
   let piggyBankAddress = (await PiggyBank.deployed()).address;
 
   await (await Vault.at(vaultAddress)).transferOwnership(piggyBankAddress);
