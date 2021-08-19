@@ -3,15 +3,18 @@
 
 pragma solidity 0.6.12;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "./Vault.sol";
+import "../interfaces/IMLMstructure.sol";
+import "../interfaces/IPartner.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IPiggyBank.sol";
-import "../utils/PiggyBankOwnable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
  * @dev 'piggy bank' contract for accumulation of gift currency
  */
-contract PiggyBank is IPiggyBank, PiggyBankOwnable {
+contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     using SafeMath for uint256;
 
     event Receive(address indexed from, uint256 value, uint256 timestamp);
@@ -31,18 +34,20 @@ contract PiggyBank is IPiggyBank, PiggyBankOwnable {
 
     uint256 internal _totalAccrual;
     uint256 internal _totalBalance;
+    uint256 internal _totalVerifiedFree;
     mapping(address => User) internal _user;
 
     address internal _basePlatform;
     address internal _vault;
 
-    constructor(address newBasePlatform, address newVault) public {
+    function initialize(address newBasePlatform) public initializer {
+        __Ownable_init();
         _basePlatform = newBasePlatform;
-        _vault = newVault;
+        _vault = address(new Vault());
     }
 
     receive() external payable {
-        uint256 freePartnerCount = 10;  // must be call to the base platform
+        uint256 freePartnerCount = _totalVerifiedFree;
         _totalAccrual = _totalAccrual.add(msg.value.div(freePartnerCount));
         _totalBalance = _totalBalance.add(msg.value);
 
@@ -50,22 +55,34 @@ contract PiggyBank is IPiggyBank, PiggyBankOwnable {
     }
 
     function accruePrimeRewawd() external payable override returns(bool success) {
-        require(msg.sender == _vault);
-        require(msg.value > 0);
+        require(msg.sender == _vault, "PiggyBank: msg.sender must be Vault contract");
+        require(msg.value > 0, "PiggyBank: msg.value must be > 0");
 
         emit AccruePrimeRewawd(msg.sender, msg.value, block.timestamp);
 
         return true;
     }
 
-    function hookPrimeReward(address target) external returns(bool success) {
-        require(msg.sender == _basePlatform);
+    function hookPrimeReward(address target) external override returns(bool success) {
+        require(msg.sender == _basePlatform, "PiggyBank: msg.sender must be MLMStricture contract");
+
+        _recalculateUser(target);
 
         User memory user = _user[target];
         if (user.isPrimeRewarded == false) {
-            // 100 ether must be received from a price oracle
-            uint256 primeReward = 100 ether;
+            // delete free
+            (,uint256 status,,,) = IPartner(_basePlatform).getPartner(target);
+            if (status == 1) {
+                _totalVerifiedFree = _totalVerifiedFree.sub(1);
+            }
+
+            // calculate cost of 100 rubles (to JOYS)
+            uint256 primeReward = IMLMstructure(_basePlatform).primeStatusCost().mul(100).div(1600);
+
+            // withfraw 100 roubles
             IVault(_vault).vaultWithdraw(primeReward);
+
+            // save state
             user.balance = user.balance.add(primeReward);
             _totalBalance = _totalBalance.add(primeReward);
             user.isPrimeRewarded = true;
@@ -78,7 +95,13 @@ contract PiggyBank is IPiggyBank, PiggyBankOwnable {
     } 
 
     function setVerificationStatus(address target, bool isVerified) external onlyOwner returns(bool success) {
+        require(_user[target].isVerified == false, "PiggyBank: user is already verifyed");
         _recalculateUser(target);
+
+        (,uint256 status,,,) = IPartner(_basePlatform).getPartner(target);
+        if (status == 1) {
+            _totalVerifiedFree = _totalVerifiedFree.add(1);
+        }
 
         _user[target].isVerified = isVerified;
 
@@ -90,7 +113,8 @@ contract PiggyBank is IPiggyBank, PiggyBankOwnable {
     function withdraw(address payable target, uint256 amount) external onlyOwner returns(bool success) {
         _recalculateUser(target);
         
-        _user[target].balance = _user[target].balance.sub(amount);
+        _user[target].balance = _user[target].balance.sub(amount, "PiggyBank: withdrawal amount exceeds balance");
+        _totalBalance = _totalBalance.sub(amount, "PiggyBank: withdrawal amount exceeds total balance");
 
         _transfer(target, amount);
 
@@ -121,7 +145,7 @@ contract PiggyBank is IPiggyBank, PiggyBankOwnable {
 
     function _expectedReward(address target) internal view returns(uint256) {
         User memory user = _user[target];
-        if (user.isVerified == true && user.personalAccrual > 0) {
+        if (user.isVerified == true && user.personalAccrual > 0 && user.isPrimeRewarded == false) {
             return(_totalAccrual.sub(user.personalAccrual));
         } else {
             return 0;
