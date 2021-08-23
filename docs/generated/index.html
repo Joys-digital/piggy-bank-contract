@@ -5,6 +5,10 @@
 
 
 
+
+
+
+
 <div class="contract" contract-name="PiggyBank">
 
 
@@ -16,7 +20,7 @@
             <!-- /react-text -->
         </div>
         <div class="sub header">
-            <!-- react-text: 931 -->Inherited from IPiggyBank, PiggyBankOwnable
+            <!-- react-text: 931 -->Inherited from IPiggyBank, OwnableUpgradeable
             <!-- /react-text -->
         </div>
     </h2>
@@ -25,13 +29,17 @@
     <div class="methods">
 
 
-        <div class="ui red segment">
-            <div class="ui red right ribbon label">
-                <!-- react-text: 3256 -->constructor
+        <div class="ui violet segment">
+            <div class="ui violet right ribbon label">
+                <!-- react-text: 3256 -->nonpayable function
                 <!-- /react-text -->
             </div>
-            <h3 class="ui header" style="margin-top: -1.5rem;"><code>constructor</code>
-                <code class="signature">public</code></h3>
+            <h3 class="ui header" style="margin-top: -1.5rem;"><code>initialize</code>
+                <!-- react-text: 3259 -->
+                <!-- /react-text --><code class="signature">c4d66de8</code>
+                <code class="signature">public</code>
+                <code class="signature">initializer</code>
+            </h3>
             <div>
                 <p>
                     
@@ -40,32 +48,13 @@
             <table class="ui definition table">
                 <tbody class="">
                     <tr class="positive">
-                        <td  rowspan="2" 
+                        <td  rowspan="1" 
                             class="" data-reactid="171">Inputs</td>
                         <td class="" data-reactid="88">address</td>
                         <td class="" data-reactid="91">
                             <div data-reactid="92">
                                 <p data-reactid="93">
                                     <code>newBasePlatform</code>
-                                </p>
-                            </div>
-                        </td>
-                        <td class="" data-reactid="91">
-                            <div data-reactid="167">
-                                <p data-reactid="168">
-                                    
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr class="positive">
-                        <td  style="display:none;" 
-                            class="" data-reactid="171">Inputs</td>
-                        <td class="" data-reactid="88">address</td>
-                        <td class="" data-reactid="91">
-                            <div data-reactid="92">
-                                <p data-reactid="93">
-                                    <code>newVault</code>
                                 </p>
                             </div>
                         </td>
@@ -1160,6 +1149,20 @@
             </div>
 
         </div>
+        <div class="ui teal segment">
+            <div class="ui teal right ribbon label">
+                <!-- react-text: 3256 -->modifier
+                <!-- /react-text -->
+            </div>
+            <h3 class="ui header" style="margin-top: -1.5rem;"><code>initializer</code>
+            </h3>
+            <div>
+                <p>
+                    Modifier to protect an initializer function from being invoked twice.
+                </p>
+            </div>
+
+        </div>
 
     </div>
 </div>
@@ -1177,7 +1180,7 @@
             <!-- /react-text -->
         </div>
         <div class="sub header">
-            <!-- react-text: 931 -->Inherited from PiggyBankOwnable
+            <!-- react-text: 931 -->Inherited from VaultOwnable
             <!-- /react-text -->
         </div>
     </h2>
@@ -1419,14 +1422,14 @@
 
 
 
-<div class="contract" contract-name="PiggyBankOwnable">
+<div class="contract" contract-name="VaultOwnable">
 
 
     <h2 class="ui left floated header">
-        <!-- react-text: 929 -->PiggyBankOwnable
+        <!-- react-text: 929 -->VaultOwnable
         <!-- /react-text -->
         <div class="sub header">
-            <!-- react-text: 931 -->contracts/utils/PiggyBankOwnable.sol
+            <!-- react-text: 931 -->contracts/utils/VaultOwnable.sol
             <!-- /react-text -->
         </div>
     </h2>

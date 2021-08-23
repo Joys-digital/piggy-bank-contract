@@ -15,7 +15,7 @@ pragma solidity 0.6.12;
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-abstract contract PiggyBankOwnable {
+abstract contract VaultOwnable {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
