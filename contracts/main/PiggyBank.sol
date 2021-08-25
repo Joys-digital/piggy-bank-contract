@@ -30,7 +30,7 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
         bool isVerified;
         bool isPrimeRewarded;
         uint256 personalAccrual;
-        uint256 balance;
+        uint256 clearBalance;
     }
 
     uint256 internal _totalAccrual;
@@ -85,7 +85,7 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
             IVault(_vault).vaultWithdraw(primeReward);
 
             // save state
-            user.balance = user.balance.add(primeReward);
+            user.clearBalance = user.clearBalance.add(primeReward);
             _totalBalance = _totalBalance.add(primeReward);
             user.isPrimeRewarded = true;
             _user[target] = user;
@@ -115,7 +115,7 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
         require(_user[target].isVerified == true, "PiggyBank: user must be verifyed.");
         _recalculateUser(target);
         
-        _user[target].balance = _user[target].balance.sub(amount, "PiggyBank: withdrawal amount exceeds balance.");
+        _user[target].clearBalance = _user[target].clearBalance.sub(amount, "PiggyBank: withdrawal amount exceeds balance.");
         _totalBalance = _totalBalance.sub(amount, "PiggyBank: withdrawal amount exceeds total balance.");
 
         _transfer(target, amount);
@@ -166,20 +166,20 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     }
 
     function balanceOf(address target) external view returns(uint256) {
-        return(_user[target].balance.add(_expectedReward(target)));
+        return(_user[target].clearBalance.add(_expectedRewardOf(target)));
     }
 
     function clearBalanceOf(address target) external view returns(uint256) {
-        return(_user[target].balance);
+        return(_user[target].clearBalance);
     }
 
     function expectedRewardOf(address target) external view returns(uint256) {
-        return(_expectedReward(target));
+        return(_expectedRewardOf(target));
     }
 
-    function _expectedReward(address target) internal view returns(uint256) {
+    function _expectedRewardOf(address target) internal view returns(uint256) {
         User memory usr = _user[target];
-        if (usr.isVerified == true && usr.personalAccrual > 0 && usr.isPrimeRewarded == false) {
+        if (usr.isVerified == true && usr.isPrimeRewarded == false) {
             return(_totalAccrual.sub(usr.personalAccrual));
         } else {
             return 0;
@@ -187,9 +187,9 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     }
 
     function _recalculateUser(address target) internal {
-        uint256 expectedRwd = _expectedReward(target);
+        uint256 expectedRwd = _expectedRewardOf(target);
         if (expectedRwd > 0) {
-            _user[target].balance = _user[target].balance.add(expectedRwd);
+            _user[target].clearBalance = _user[target].clearBalance.add(expectedRwd);
         }
         _user[target].personalAccrual = _totalAccrual;
     }
