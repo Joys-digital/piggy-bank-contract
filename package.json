@@ -1,6 +1,6 @@
 {
   "name": "piggy-bank-contract",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Smart contract for accumulation of gift currency",
   "main": "truffle-config.js",
   "directories": {
@@ -15,13 +15,12 @@
     "flatten": "truffle-flattener ./contracts/main/JoysStaking.sol | awk '/SPDX-License-Identifier/&&c++>0 {next} 1' | awk '/pragma experimental ABIEncoderV2;/&&c++>0 {next} 1' > ./Full.sol"
   },
   "author": "Alexey Zhdanov",
-  "license": "",
-  "dependencies": {
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
     "@openzeppelin/contracts": "^3.3.0",
     "@openzeppelin/contracts-upgradeable": "^3.2.0",
-    "@truffle/hdwallet-provider": "^1.4.1"
-  },
-  "devDependencies": {
+    "@truffle/hdwallet-provider": "^1.4.1",
     "@openzeppelin/test-helpers": "^0.5.5",
     "solidity-docgen": "^0.5.11",
     "solhint": "^3.2.0",
