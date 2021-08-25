@@ -2,6 +2,7 @@
 // solhint-disable not-rely-on-time, reason-string, no-inline-assembly
 
 pragma solidity 0.6.12;
+pragma experimental ABIEncoderV2;
 
 import "./Vault.sol";
 import "../interfaces/IMLMstructure.sol";
@@ -48,6 +49,7 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
 
     receive() external payable {
         uint256 freePartnerCount = _totalVerifiedFree;
+        require(freePartnerCount > 0, "PiggyBank: no verified-free partners.");
         _totalAccrual = _totalAccrual.add(msg.value.div(freePartnerCount));
         _totalBalance = _totalBalance.add(msg.value);
 
@@ -55,8 +57,8 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     }
 
     function accruePrimeRewawd() external payable override returns(bool success) {
-        require(msg.sender == _vault, "PiggyBank: msg.sender must be Vault contract");
-        require(msg.value > 0, "PiggyBank: msg.value must be > 0");
+        require(msg.sender == _vault, "PiggyBank: msg.sender must be Vault contract.");
+        require(msg.value > 0, "PiggyBank: msg.value must be > 0.");
 
         emit AccruePrimeRewawd(msg.sender, msg.value, block.timestamp);
 
@@ -64,7 +66,7 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     }
 
     function hookPrimeReward(address target) external override returns(bool success) {
-        require(msg.sender == _basePlatform, "PiggyBank: msg.sender must be MLMStricture contract");
+        require(msg.sender == _basePlatform, "PiggyBank: msg.sender must be MLMStricture contract.");
 
         _recalculateUser(target);
 
@@ -72,7 +74,7 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
         if (user.isPrimeRewarded == false) {
             // delete free
             (,uint256 status,,,) = IPartner(_basePlatform).getPartner(target);
-            if (status == 1) {
+            if ((status == 1) && _user[target].isVerified) {
                 _totalVerifiedFree = _totalVerifiedFree.sub(1);
             }
 
@@ -95,7 +97,6 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     } 
 
     function setVerificationStatus(address target, bool isVerified) external onlyOwner returns(bool success) {
-        require(_user[target].isVerified == false, "PiggyBank: user is already verifyed");
         _recalculateUser(target);
 
         (,uint256 status,,,) = IPartner(_basePlatform).getPartner(target);
@@ -111,10 +112,11 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     }
 
     function withdraw(address payable target, uint256 amount) external onlyOwner returns(bool success) {
+        require(_user[target].isVerified == true, "PiggyBank: user must be verifyed.");
         _recalculateUser(target);
         
-        _user[target].balance = _user[target].balance.sub(amount, "PiggyBank: withdrawal amount exceeds balance");
-        _totalBalance = _totalBalance.sub(amount, "PiggyBank: withdrawal amount exceeds total balance");
+        _user[target].balance = _user[target].balance.sub(amount, "PiggyBank: withdrawal amount exceeds balance.");
+        _totalBalance = _totalBalance.sub(amount, "PiggyBank: withdrawal amount exceeds total balance.");
 
         _transfer(target, amount);
 
@@ -131,6 +133,38 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
         return true;
     }
 
+    function totalAccrual() external view returns(uint256) {
+        return(_totalAccrual);
+    }
+
+    function totalBalance() external view returns(uint256) {
+        return(_totalBalance);
+    }
+
+    function totalVerifiedFree() external view returns(uint256) {
+        return(_totalVerifiedFree);
+    }
+
+    function isPrimeRewarded(address target) external view returns(bool) {
+        return(_user[target].isPrimeRewarded);
+    }
+
+    function isVerified(address target) external view returns(bool) {
+        return(_user[target].isVerified);
+    }
+
+    function user(address target) external view returns(User memory) {
+        return(_user[target]);
+    }
+
+    function basePlatform() external view returns(address) {
+        return(_basePlatform);
+    }
+
+    function vault() external view returns(address) {
+        return(_vault);
+    }
+
     function balanceOf(address target) external view returns(uint256) {
         return(_user[target].balance.add(_expectedReward(target)));
     }
@@ -144,9 +178,9 @@ contract PiggyBank is IPiggyBank, OwnableUpgradeable {
     }
 
     function _expectedReward(address target) internal view returns(uint256) {
-        User memory user = _user[target];
-        if (user.isVerified == true && user.personalAccrual > 0 && user.isPrimeRewarded == false) {
-            return(_totalAccrual.sub(user.personalAccrual));
+        User memory usr = _user[target];
+        if (usr.isVerified == true && usr.personalAccrual > 0 && usr.isPrimeRewarded == false) {
+            return(_totalAccrual.sub(usr.personalAccrual));
         } else {
             return 0;
         }
