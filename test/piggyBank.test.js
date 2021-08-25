@@ -16,10 +16,23 @@ contract('PiggyBank', function(accounts) {
     this.vault = await Vault.at(await this.testInstance.vault());
   });
 
+    it('check constructor', async function() {
+        assert.equal(await this.testInstance.basePlatform(), this.mlmPlatform.address);
+    });
+
   describe('receive', function () {
     it('receive positive', async function() {
         assert.equal(await this.testInstance.totalAccrual(), 0);
         assert.equal(await this.testInstance.totalBalance(), 0);
+        assert.deepEqual(
+            await this.testInstance.user(user1),
+            [
+                false,
+                false,
+                '0',
+                '0'
+            ]
+        );
 
          await this.testInstance.setVerificationStatus(user1, true);
          await this.testInstance.setVerificationStatus(user2, true);
@@ -28,6 +41,22 @@ contract('PiggyBank', function(accounts) {
 
         assert.equal(await this.testInstance.totalAccrual(), "500");
         assert.equal(await this.testInstance.totalBalance(), "1000");
+
+        assert.equal(await this.testInstance.balanceOf(user1), "500");
+        assert.equal(await this.testInstance.expectedRewardOf(user1), "500");
+        assert.equal(await this.testInstance.clearBalanceOf(user1), "0");
+        assert.equal(await this.testInstance.balanceOf(user2), "500");
+        assert.equal(await this.testInstance.expectedRewardOf(user2), "500");
+        assert.equal(await this.testInstance.clearBalanceOf(user2), "0");
+        assert.deepEqual(
+            await this.testInstance.user(user1),
+            [
+                true,
+                false,
+                '0',
+                '0'
+            ]
+        );
 
         await expectEvent(result, "Receive", {
             from: admin,
@@ -102,31 +131,54 @@ contract('PiggyBank', function(accounts) {
     });
   });
 
-//   describe('changePiggyBank', function () {
-//     it('positive', async function() {
-//         assert.equal((await this.testInstance.piggyBank()), ZERO_ADDRESS);
+  describe('changeBasePlatform', function () {
+    it('changeBasePlatform positive', async function() {
+        assert.equal((await this.testInstance.basePlatform()), this.mlmPlatform.address);
 
-//         const address = "0x0000000000000000000000000000000000000001";
+        const address = "0x0000000000000000000000000000000000000001";
 
-//         let result = await this.testInstance.changePiggyBank(address);
+        let result = await this.testInstance.changeBasePlatform(address);
 
-//         assert.equal((await this.testInstance.piggyBank()), address);
+        assert.equal((await this.testInstance.basePlatform()), address);
 
-//         await expectEvent(result, "ChangePiggyBank", {
-//             newPiggyBankContract: address,
-//             oldPiggyBankContract: ZERO_ADDRESS
-//         })
-//     });
+        await expectEvent(result, "ChangeBasePlatform", {
+            newBasePlatform: address,
+            oldBasePlatform: this.mlmPlatform.address
+        })
+    });
 
-//     it('negative', async function() {
-//         const address = "0x0000000000000000000000000000000000000001";
+    it('changeBasePlatform negative', async function() {
+        const address = "0x0000000000000000000000000000000000000001";
 
-//         await expectRevert(
-//             this.testInstance.changePiggyBank(address, {from: accounts[1]}),
-//             "Ownable: caller is not the owner."
-//         );
-//     });
-//   });
+        await expectRevert(
+            this.testInstance.changeBasePlatform(address, {from: accounts[1]}),
+            "Ownable: caller is not the owner."
+        );
+    });
+  });
+
+  describe('withdraw', function () {
+    it('withdraw after receive', async function() {
+        await this.testInstance.setVerificationStatus(user1, true);
+        await this.testInstance.setVerificationStatus(user2, true);
+
+        await this.testInstance.send("1000");
+
+        let balance1 = await web3.eth.getBalance(user1);
+        let result1 = await this.testInstance.withdraw(user1, "500");
+
+        assert.equal(
+            await web3.eth.getBalance(user1),
+            (new BN(balance1)).add(new BN("500")).toString()
+        );
+
+        await expectEvent(result1, "Withdraw", {
+            from: user1,
+            value: "500"
+        });
+
+    });
+  });
 
   
 });
