@@ -21,7 +21,7 @@ module.exports = {
       port: 8545,
       network_id: "*",
     },
-    joysPoas: {
+    joys: {
       provider: function() {
         return new HDWalletProvider({
           privateKeys: [privateKey],
