@@ -1,0 +1,131 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0x8196f73B3EA3cDCdC17e907300e7ba5d227089Ac",
+    "txHash": "0xc034a2a6a1f442e261012628e03e3bb8b2bff4ee898f66888bb508c4ae652d5b"
+  },
+  "proxies": [
+    {
+      "address": "0xD81285EfFAe5858b211eb97A391359fb1bF91cC4",
+      "txHash": "0xa10a2d40a635002ac16bdca33c29f643a432a6f6ab76bbe3843757f4c5eea6c1",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "8250be6352d5597ed18b7cb48d726c0aedfcff1840a986f7bb818dbe899d178a": {
+      "address": "0x2583739CdF43556482D0Fa220CbD8c73261bD2b0",
+      "txHash": "0x56c7d27889e70794f1a98a7b792408dffa1643194fb112b1121d14d8a58c0e9b",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/Initializable.sol:25"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/Initializable.sol:30"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:31"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:20"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:74"
+          },
+          {
+            "contract": "PiggyBank",
+            "label": "_totalAccrual",
+            "type": "t_uint256",
+            "src": "../project:/contracts/main/PiggyBank.sol:36"
+          },
+          {
+            "contract": "PiggyBank",
+            "label": "_totalBalance",
+            "type": "t_uint256",
+            "src": "../project:/contracts/main/PiggyBank.sol:37"
+          },
+          {
+            "contract": "PiggyBank",
+            "label": "_totalVerifiedFree",
+            "type": "t_uint256",
+            "src": "../project:/contracts/main/PiggyBank.sol:38"
+          },
+          {
+            "contract": "PiggyBank",
+            "label": "_user",
+            "type": "t_mapping(t_address,t_struct(User)1168_storage)",
+            "src": "../project:/contracts/main/PiggyBank.sol:39"
+          },
+          {
+            "contract": "PiggyBank",
+            "label": "_basePlatform",
+            "type": "t_address",
+            "src": "../project:/contracts/main/PiggyBank.sol:41"
+          },
+          {
+            "contract": "PiggyBank",
+            "label": "_vault",
+            "type": "t_address",
+            "src": "../project:/contracts/main/PiggyBank.sol:42"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_struct(User)1168_storage)": {
+            "label": "mapping(address => struct PiggyBank.User)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_struct(User)1168_storage": {
+            "label": "struct PiggyBank.User",
+            "members": [
+              {
+                "label": "isVerified",
+                "type": "t_bool"
+              },
+              {
+                "label": "isPrimeRewarded",
+                "type": "t_bool"
+              },
+              {
+                "label": "personalAccrual",
+                "type": "t_uint256"
+              },
+              {
+                "label": "clearBalance",
+                "type": "t_uint256"
+              }
+            ]
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          }
+        }
+      }
+    }
+  }
+}

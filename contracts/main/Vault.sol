@@ -3,13 +3,13 @@
 
 pragma solidity 0.6.12;
 
-import "../utils/VaultOwnable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IPiggyBank.sol";
 
 /**
  * @dev Vault for Piggy Bank contract
  */
-contract Vault is VaultOwnable {
+contract Vault is Ownable {
     event VaultReplenishment(address indexed from, uint256 amount, uint256 timestamp);
     event VaultWithdraw(address indexed from, uint256 amount, uint256 timestamp);
 
